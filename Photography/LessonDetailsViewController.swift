@@ -107,10 +107,10 @@ class LessonDetailsViewController: UIViewController, URLSessionDownloadDelegate 
         print("Subroo:\(videoURL)")
         videoPlayerViewController.player = player
 
-        addChild(videoPlayerViewController)
-        view.addSubview(videoPlayerViewController.view)
-        videoPlayerViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        videoPlayerViewController.didMove(toParent: self)
+//        addChild(videoPlayerViewController)
+//        view.addSubview(videoPlayerViewController.view)
+//        videoPlayerViewController.view.translatesAutoresizingMaskIntoConstraints = false
+//        videoPlayerViewController.didMove(toParent: self)
 
         NSLayoutConstraint.activate([
             videoPlayerViewController.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -241,15 +241,54 @@ class LessonDetailsViewController: UIViewController, URLSessionDownloadDelegate 
             self.configureDownloadButton()
         }
     }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+
+        coordinator.animate(alongsideTransition: { _ in
+            if let windowScene = self.view.window?.windowScene {
+                let orientation = windowScene.interfaceOrientation
+                if orientation == .landscapeLeft || orientation == .landscapeRight {
+                    self.videoPlayerViewController.enterFullScreen(animated: true, completion: nil)
+                } else if orientation == .portrait {
+                    self.videoPlayerViewController.exitFullScreen(animated: true, completion: nil)
+                }
+            }
+        }, completion: nil)
+    }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         videoPlayerViewController.player?.pause()
-        videoPlayerViewController.player = nil
-        videoPlayerViewController.view.removeFromSuperview()
     }
 
 }
+
+extension AVPlayerViewController {
+    func enterFullScreen(animated: Bool, completion: (() -> Void)?) {
+        if let view = self.view as? AVFullScreenView {
+            view.setFullscreen(true, animated: animated, completion: completion)
+        }
+    }
+    
+    func exitFullScreen(animated: Bool, completion: (() -> Void)?) {
+        if let view = self.view as? AVFullScreenView {
+            view.setFullscreen(false, animated: animated, completion: completion)
+        }
+    }
+}
+
+private class AVFullScreenView: UIView {
+    func setFullscreen(_ fullscreen: Bool, animated: Bool, completion: (() -> Void)?) {
+        let selectorName = fullscreen ? "_transitionToFullScreenAnimated:completionHandler:" : "_transitionFromFullScreenAnimated:completionHandler:"
+        let selector = NSSelectorFromString(selectorName)
+        if responds(to: selector) {
+            perform(selector, with: animated, with: completion)
+        }
+    }
+}
+
+
 
 
 
