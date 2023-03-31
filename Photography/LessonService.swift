@@ -8,7 +8,7 @@
 import Foundation
 
 class LessonService {
-    let apiURL = "https://iphonephotographyschool.com/test-api/lessons"
+    let apiURL = "Your_URL"
     
     let cacheFileName = "lessons_cache.json"
     
